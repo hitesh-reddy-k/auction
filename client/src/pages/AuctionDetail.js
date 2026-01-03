@@ -54,16 +54,26 @@ const AuctionDetail = () => {
     setSuccess('');
     setBidding(true);
 
+    const numericBid = parseFloat(bidAmount);
+    const userBalance = parseFloat(user?.balance ?? 0);
+
+    // Client-side guard for insufficient balance
+    if (Number.isFinite(numericBid) && numericBid > userBalance) {
+      setError('Insufficient balance');
+      setBidding(false);
+      return;
+    }
+
     try {
       await api.post('/bids', {
         auction_id: parseInt(id),
-        amount: parseFloat(bidAmount),
+        amount: numericBid,
       });
 
       setSuccess('Bid placed successfully!');
       await loadAuction();
       
-      const newBalance = parseFloat(user.balance) - parseFloat(bidAmount);
+      const newBalance = userBalance - numericBid;
       updateUserBalance(newBalance);
 
       if (auction && auction.user_id === user.id) {

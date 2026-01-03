@@ -33,8 +33,50 @@ const CreateAuction = () => {
     setLoading(true);
     setSuccess(false);
 
+    // Client-side validation for clearer errors before hitting API
+    const title = formData.title.trim();
+    const description = formData.description.trim();
+    const startingPriceNum = parseFloat(formData.starting_price);
+    const closingDate = new Date(formData.closing_date);
+    const now = new Date();
+
+    if (title.length < 3) {
+      setError('Title must be at least 3 characters');
+      setLoading(false);
+      return;
+    }
+
+    if (description.length < 10) {
+      setError('Description must be at least 10 characters');
+      setLoading(false);
+      return;
+    }
+
+    if (!Number.isFinite(startingPriceNum) || startingPriceNum < 0.01) {
+      setError('Starting price must be at least 0.01');
+      setLoading(false);
+      return;
+    }
+
+    if (!(closingDate instanceof Date) || isNaN(closingDate.getTime())) {
+      setError('Please select a valid closing date');
+      setLoading(false);
+      return;
+    }
+
+    if (closingDate <= now) {
+      setError('Closing date must be in the future');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await api.post('/auctions', formData);
+      const response = await api.post('/auctions', {
+        title,
+        description,
+        starting_price: startingPriceNum,
+        closing_date: formData.closing_date,
+      });
       setSuccess(true);
       
       // Wait a moment to show success message
